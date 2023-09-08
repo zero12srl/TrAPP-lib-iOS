@@ -155,9 +155,10 @@ must be set also in the TrAPP platform.
 Since there could be connection problem that will compromise the correct function of the library, there is also the possibility to give to the app an external `JSON` containing the translations that needs to be always available. The format of the `JSON` needs to be the following:
 ```` json
 {
-    "keySet": [
-        "test.plain": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. DEFAULT"
-    ]
+    "keys": {
+        "test.plain": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "test.substring": "Lorem {{1}} dolor sit amet, consectetur adipiscing elit.",
+    }
 }
 ``````
 To add this file to the library there is the `setDefaultsStrings` method that save the provided strings in the local database.
