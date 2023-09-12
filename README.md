@@ -1,6 +1,6 @@
 # TrAPP iOS Library
 
-TrAPP is a platform that allow to manage all the translations of mobile apps and web apps. This repository
+TrAPP is a platform that allow to manage all the translations of mobile and web apps. This repository
 contains the library to integrate TrAPP with iOS mobile apps.
 The library handles the following features:
 - Authentication
@@ -100,16 +100,13 @@ try await translator.sync()
 ```
 
 The synchronization operation should be done at least at every startup of the app, as first operation, to ensure
-that the strings are available before using them. Depending on the behaviour of the app, the sync operation can 
+that the strings are available before using them. Depending on the behavior of the app, the sync operation can 
 also be done multiple time during the lifecycle of the app, without issues.
-
-Since the library download only the active language (to be fast and save bandwidth), the synchronization should
-be done also if the language is changed, to allow the library to download the new required language.
 
 ### Localization
 
 After the synchronization the localization keys can be translated. To do it there are two functions,
-`translate` and `getTranslationFor` the difference between the two is how the not-found error is handled.
+`translate` and `getTranslationFor` the difference between them is how the not-found error is handled.
 
 ``` swift
 let string1 = translator.translate("test.plain")
@@ -121,14 +118,63 @@ instead `getTranslationFor` will throw a `DatabaseError`. The usage depends on t
 example if the developer wants to translate a string inside a SwiftUI `Text` object they may prefer
 to use the function without any throw, to make the code more readable.
 
+#### Template Strings
+
+A translation can contain some placeholders that needs to be substitute with some values. To achieve this, the translation method accepts an array of `String` that contains the substitutions to the placeholders. The order of the array will be used to order the substitutions.
+For example the translation for the following strings will be:
+``` json
+"test.substring2": "Lorem {{1}} dolor sit amet, {{2}} adipiscing elit."
+"test.substring3": "Lorem {{2}} dolor sit amet, {{1}} adipiscing elit."
+````
+``` swift
+let string1 = translator.translate("test.substring2", ["ipsum", "consectetur"])
+// string1 -> "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+let string2 = translator.translate("test.substring3", ["ipsum", "consectetur"])
+// string2 -> "Lorem consectetur dolor sit amet, ipsum adipiscing elit."
+```
+
+> **_NOTE:_**  When using the method `getTranslationFor` the `DatabaseError` will describe the reason of the failure.
+
+
 ### Change language
 
-If the option `automaticallyUpdateLocale` was passed during the configuration the library will change
-language based on the device's preference. If instead the developer wants to handle this manally, the
-function `setLanguage` will allow to set a new language. The string should follow the language ISO
-standard, with two characters for the language and two for the country, like `en-US`. The same language
-must be set also in the TrAPP platform backoffice.
+If the option `automaticallyUpdateLocale` was passed during the configuration, the library will change
+language based on the device's preference. If, instead, the developer wants to handle this manually, the
+function `setLanguage` will allow to set and synchronize a new language.
 
+``` swift
+try await translator.setLanguage(languageCode: "en-US")
+```
+
+> **_NOTE:_** Calling the `setLanguage` method disables the `automaticallyUpdateLocale` option.
+> **_NOTE:_** Calling the `setLanguage` method automatically synchronize the new language. 
+
+This method needs a string indicating the `languageCode` that needs to be set. This string should follow the language ISO
+standard, with two characters for the language, four optional characters for the script, and two characters for the country, like `en-US` or `zh-HANS-CN`. 
+The same language
+must be set also in the TrAPP platform.
+
+### External file
+
+Since the internet connection is not always guaranteed at the first launch of the app, it is possible to give to the library an external `JSON` file containing the translations that needs to be always available. 
+The format of the `JSON` file needs to be the following:
+``` json
+{
+    "keys": {
+        "test.plain": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "test.substring": "Lorem {{1}} dolor sit amet, consectetur adipiscing elit.",
+    }
+}
+```
+To add this file to the library the `setDefaultsStrings` method should be used. This method saves the provided strings in the local database.
+
+``` swift
+try await translator.setDefaultsStrings(fileURL: localPath)
+```
+
+In the example, the `localPath` is the `URL` to file. The format of the `URL` should be `file:///<path-to-file>/file.json`. 
+
+> **_NOTE:_** This method should be called only at the first launch of the app.
 
 
 ## License
