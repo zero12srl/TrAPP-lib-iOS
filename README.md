@@ -1,3 +1,7 @@
+<p align="center">
+<img alt="logo image" width="250" src="https://trapp-documentation.s3.eu-central-1.amazonaws.com/LogoMakr-7gMmq0.png"  />
+</p>
+
 # TrAPP iOS Library
 
 TrAPP is a platform that allow to manage all the translations of mobile and web apps. This repository
@@ -47,8 +51,7 @@ import TrAPPSync
 
 ## Quick start
 
-To use TrAPP library you need an instance of the Translator object, but to obtain it you need to configure
-the library first.
+To use TrAPP library you need an instance of the Translator object, to obtain it the configuration must be completed first.
 
 ### Configuration
 
@@ -62,8 +65,7 @@ do {
 }
 ```
 
-If you want to let the library to automatically use the device language for the translation you can also
-set the option `automaticallyUpdateLocale` during the configuration.
+To automatically use device language for translation, during the configuration must be set as option `automaticallyUpdateLocale`, as shown in the following code:
 
 ``` swift
 do {
@@ -75,8 +77,7 @@ do {
 
 ### Retrieve the Translator object
 
-Now that the library is configured, an instance of the Translator object can be retrieved through the
-`getTranslator` function.
+Once the library is configured, an instance of the Translator object can be retrieved through the `getTranslator` function.
 
 ``` swift
 do {
@@ -86,77 +87,65 @@ do {
 }
 ```
 
-> **_NOTE:_** The translator object is a singleton, the returned instance is always the same.
+> **_NOTE:_** The Translator object is a singleton, the returned instance is always the same.
 
 This object can now be injected or retrieved anywhere in the application.
 
 ### Sync
 
-To synchronize the local database with the remote one, the `sync` function must be used. Since the function is marked
-with `async` remember to use it in an asynchronous scope.
+To synchronize the local database with the remote one, the `sync` function must be used. Since the function is marked with `async`, it must be used in an asynchronous scope.
 
 ``` swift
 try await translator.sync()
 ```
 
-The synchronization operation should be done at least at every startup of the app, as first operation, to ensure
-that the strings are available before using them. Depending on the behavior of the app, the sync operation can 
-also be done multiple time during the lifecycle of the app, without issues.
+The synchronization operation should be done at least once every time the app is started, possibly as first operation, to ensure that the strings are available before using them. Depending on the behavior of the app, the sync operation can also be done multiple time during the lifecycle of the app, without issues.
 
 ### Localization
 
-After the synchronization the localization keys can be translated. To do it there are two functions,
-`translate` and `getTranslationFor` the difference between them is how the not-found error is handled.
+After the synchronization, the localization keys can be translated. To do it there are two functions, `translate` and `getTranslationFor` the difference between them is how the not-found error is handled.
 
 ``` swift
 let string1 = translator.translate("test.plain")
 let string2 = try translator.getTranslationFor("test.plain")
 ```
 
-In the first case `translate` will return the same key if it is not available in the local database,
-instead `getTranslationFor` will throw a `DatabaseError`. The usage depends on the desired result, for
-example if the developer wants to translate a string inside a SwiftUI `Text` object they may prefer
-to use the function without any throw, to make the code more readable.
+In the first case, `translate` will return the same key if it is not available in the local database, instead `getTranslationFor` will throw a `DatabaseError`. The usage depends on the desired result, for example if the developer wants to translate a string inside a SwiftUI `Text` object they may prefer to use the function without any throw, to make the code more readable.
 
 #### Template Strings
 
-A translation can contain some placeholders that needs to be substitute with some values. To achieve this, the translation method accepts an array of `String` that contains the substitutions to the placeholders. The order of the array will be used to order the substitutions.
+A translation can contain some placeholders that need to be substitute with some values. To achieve this, the translation method accepts an array of `String` that contains the substitutions to the placeholders. The order of the array will be used to order the substitutions.
 For example the translation for the following strings will be:
 ``` json
-"test.substring2": "Lorem {{1}} dolor sit amet, {{2}} adipiscing elit."
-"test.substring3": "Lorem {{2}} dolor sit amet, {{1}} adipiscing elit."
-````
+"test.substring1": "Lorem {{1}} dolor sit amet, {{2}} adipiscing elit."
+"test.substring2": "Lorem {{2}} dolor sit amet, {{1}} adipiscing elit."
+```
 ``` swift
-let string1 = translator.translate("test.substring2", ["ipsum", "consectetur"])
+let string1 = translator.translate("test.substring1", ["ipsum", "consectetur"])
 // string1 -> "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-let string2 = translator.translate("test.substring3", ["ipsum", "consectetur"])
+let string2 = translator.translate("test.substring2", ["ipsum", "consectetur"])
 // string2 -> "Lorem consectetur dolor sit amet, ipsum adipiscing elit."
 ```
 
-> **_NOTE:_**  When using the method `getTranslationFor` the `DatabaseError` will describe the reason of the failure.
-
+> **_NOTE:_**  When using the method `getTranslationFor`, the `DatabaseError` will describe the reason of the failure.
 
 ### Change language
 
-If the option `automaticallyUpdateLocale` was passed during the configuration, the library will change
-language based on the device's preference. If, instead, the developer wants to handle this manually, the
-function `setLanguage` will allow to set and synchronize a new language.
+If the option `automaticallyUpdateLocale` was passed during the configuration, the library will change language based on the device's preference. If, instead, the developer wants to handle this manually, the function `setLanguage` will allow to set and synchronize a new language.
 
 ``` swift
 try await translator.setLanguage(languageCode: "en-US")
 ```
 
-> **_NOTE:_** Calling the `setLanguage` method disables the `automaticallyUpdateLocale` option.
-> **_NOTE:_** Calling the `setLanguage` method automatically synchronize the new language. 
+> **_NOTE:_** Calling the `setLanguage` function also disables the `automaticallyUpdateLocale` option.
+> **_NOTE:_** Calling the `setLanguage` function automatically synchronize the new language. 
 
-This method needs a string indicating the `languageCode` that needs to be set. This string should follow the language ISO
-standard, with two characters for the language, four optional characters for the script, and two characters for the country, like `en-US` or `zh-HANS-CN`. 
-The same language
-must be set also in the TrAPP platform.
+This function needs a string indicating the `languageCode` that needs to be set. This string should follow the language ISO standard, with two characters for the language, four optional characters for the script, and two characters for the country, like `en-US` or `zh-HANS-CN`. 
+The same language must be set also in the TrAPP online platform.
 
 ### External file
 
-Since the internet connection is not always guaranteed at the first launch of the app, it is possible to give to the library an external `JSON` file containing the translations that needs to be always available. 
+Since the Internet connection is not always guaranteed at the first launch of the app, it is possible to give to the library an external `JSON` file containing the translations that needs to be always available. 
 The format of the `JSON` file needs to be the following:
 ``` json
 {
@@ -166,7 +155,7 @@ The format of the `JSON` file needs to be the following:
     }
 }
 ```
-To add this file to the library the `setDefaultsStrings` method should be used. This method saves the provided strings in the local database.
+To add this file to the library must be used the `setDefaultsStrings` function. This function saves the provided strings in the local database.
 
 ``` swift
 try await translator.setDefaultsStrings(fileURL: localPath)
@@ -175,11 +164,6 @@ try await translator.setDefaultsStrings(fileURL: localPath)
 In the example, the `localPath` is the `URL` to file. The format of the `URL` should be `file:///<path-to-file>/file.json`. 
 
 > **_NOTE:_** This method should be called only at the first launch of the app.
-
-
-## License
-
-This library is released under the MIT license. See [LICENSE](LICENSE) for details.
 
 ## About
 
