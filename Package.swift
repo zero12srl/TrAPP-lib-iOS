@@ -16,7 +16,7 @@ let package = Package(
     dependencies: [],
     targets: [
         .binaryTarget(name: "TrAPP-lib",
-                      url: "https://trapp-artifact-ios.s3.eu-central-1.amazonaws.com/TrAPPSync-1.0.1.xcframework.zip",
-                      checksum: "35cf6fa393d50349b9a81b727f183601a31c7dfbee41cb288ce4f3c007d16895")
+                      url: "https://trapp-artifact-ios.s3.eu-central-1.amazonaws.com/TrAPPSync-1.0.2.xcframework.zip",
+                      checksum: "ea6f20a7643124c49fb88108f05b57b997870a8610bc402a6e9ac3731cf199c2")
     ]
 )
