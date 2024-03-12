@@ -101,6 +101,24 @@ try await translator.sync()
 
 The synchronization operation should be done at least once every time the app is started, possibly as first operation, to ensure that the strings are available before using them. Depending on the behavior of the app, the sync operation can also be done multiple time during the lifecycle of the app, without issues.
 
+### Observing the state
+
+`Translator` emits two states that are `translatorSyncState` and `translatorLanguageState`.
+
+The former describes the state of the synchronization of the local database with remote one and can assume three values:
+- `desynchronized`: when the `Translator` has not been synchronized or the previous synchronization failed;
+- `synchronized`: when the synchronization has been done successfully;
+- `synchronizing`: when the synchronization is in progress.
+
+The latter describes the synchronization state of the new language when this changes can assume three values:
+- `changingLanguage`: when the synchronization of the new language is in progress;
+- `defaultLanguage`: when the language has not been changed or the previous synchronization of the new language failed;
+- `languageChanged`: when the synchronization of the new language has been done successfully.
+
+This states could be used to ensure that the translation operation is done only when the value of one of the states is `synchronized` or `languageChanged`. To see the values of the states two approaches could be followed:
+- the states could be observed by making a `sink` on them;
+- the current value of the state could be retrieved by checking his `value` 
+
 ### Localization
 
 After the synchronization, the localization keys can be translated. To do it there are two functions, `translate` and `getTranslationFor` the difference between them is how the not-found error is handled.
@@ -164,6 +182,34 @@ try await translator.setDefaultsStrings(fileURL: localPath)
 In the example, the `localPath` is the `URL` to file. The format of the `URL` should be `file:///<path-to-file>/file.json`. 
 
 > **_NOTE:_** This method should be called only at the first launch of the app.
+
+### TranslatableText
+
+The translation of a string could also be done using `TranslatableText` a wrapper of `SwiftUI.Text`. 
+
+This *View* waits, with a shimmered text, until one of the `Translator` states becomes `synchronized` or `languageChanged` and only when one of this states are reached performs the translation.
+
+The view supports:
+- the translation of templated strings;
+- custom placeholder;
+- custom timeout:
+- view modifiers applied to the text with the `content` closure.
+
+TranslatableText without modifiers
+```swift
+TranslatableText(key: "test.plain")
+```
+
+TranslatableText with modifiers
+```swift
+TranslatableText(key: "test.plain", content: { text in
+    text
+        .font(.caption)
+        .fontWeight(.semibold)
+        .underline()
+        .foregroundColor(.green)
+})
+```
 
 ## About
 
