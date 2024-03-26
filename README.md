@@ -41,7 +41,7 @@ dependencies: [
 
 And to the target:
 ``` swift
-.product(name: "TrAPP-lib-iOS", package: "TrAPP-lib"),
+.product(name: "TrAPP-lib", package: "TrAPP-lib-iOS"),
 ```
 
 Then just import it through:
