@@ -103,7 +103,7 @@ The synchronization operation should be done at least once every time the app is
 
 ### Observing the state
 
-`Translator` emits two states that are `translatorSyncState` and `translatorLanguageState`.
+`Translator` emits two states, `translatorSyncState` and `translatorLanguageState`.
 
 The former describes the state of the synchronization of the local database with remote one and can assume three values:
 - `desynchronized`: when the `Translator` has not been synchronized or the previous synchronization failed;
@@ -185,7 +185,7 @@ In the example, the `localPath` is the `URL` to file. The format of the `URL` sh
 
 ### TranslatableText
 
-The translation of a string could also be done using `TranslatableText` a wrapper of `SwiftUI.Text`. 
+The translation of a string could also be done using `TranslatableText`, a wrapper of `SwiftUI.Text`. 
 
 This *View* waits, with a shimmered text, until one of the `Translator` states becomes `synchronized` or `languageChanged` and only when one of this states are reached performs the translation.
 
