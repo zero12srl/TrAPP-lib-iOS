@@ -154,7 +154,7 @@ The synchronization operation should be done at least once every time the app is
 - `localFileError`: when there has been an error with the local translations file used with the `localOnly` option;
 - `genericError`: when there has been a generic error during the synchronization of the `Translator`.
 
-`translatorLanguageState` describes the synchronization state of the new language when this changes and can assume three values:
+`translatorLanguageState` describes the synchronization state of the new language when this changes and can assume one of the following values:
 
 - `changingLanguage`: when the synchronization of the new language is in progress;
 - `defaultLanguage`: when the language has not been changed or the previous synchronization of the new language failed;
