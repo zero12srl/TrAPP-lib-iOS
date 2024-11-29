@@ -3,26 +3,37 @@
 </p>
 
 # TrAPP iOS Library
+Version 1.1.0
 
-TrAPP is a platform that allow to manage all the translations of mobile and web apps. This repository
-contains the library to integrate TrAPP with iOS mobile apps.
+## ⚠️ Breaking Change
+With the introduction of offline mode in version 1.1.0, the order of the parameters to be passed to the `init()` of `TranslatorConfigurationModel` has changed. The new signature is the following:
+```swift
+TranslatorConfigurationModel(
+    primaryLanguage: String,
+    options: [TranslatorSyncOptions] = [],
+    apiKey: String? = nil,
+    localFilePath: URL? = nil
+)
+```
+
+***
+
+TrAPP is a platform that allow to manage the localization of mobile and web apps. This repository contains the library to integrate TrAPP with iOS mobile apps.
 The library handles the following features:
+
 - Authentication
 - Synchronization
 - Translation
 
+
 # Overview
 
-Every development platforms comes with the support of localization, to be able to translate text based on
-the preferences of the user's device.
-The main issue is that every platform uses different formats and the localization files must be added inside
-the application bundles, requiring an update every time a string is changed.
-Moreover, keeping the files of every platform up to date is a constant task that can be time consuming and prone
-to errors.
-TrAPP helps keeping all the translations in a single point, always up to date and available to every component
-of the team.
-This Swift library allows iOS developers to retrieve and use the translations of the platform with a simple integration,
-without worrying about the technical implementation behind.
+Every development platform comes with the support of localization, to be able to translate text based on the preferences of the user's device.
+The main issue is that every platform uses different formats and the localization files must be added inside the application bundles, requiring an update every time a string is changed.
+Moreover, keeping the files of every platform up to date is a recurring task that can be time consuming and prone to errors.
+TrAPP helps keeping all the translations in a single point, always up to date and available to every component of the team.
+
+This Swift library allows iOS developers to retrieve and use the translations of the platform with a simple integration, without worrying about the technical implementation behind.
 
 ## Installation
 
@@ -51,25 +62,53 @@ import TrAPPSync
 
 ## Quick start
 
-To use TrAPP library you need an instance of the Translator object, to obtain it the configuration must be completed first.
+To use TrAPP library you need an instance of the Translator object; to obtain it the configuration must be completed first.
 
 ### Configuration
 
-To configure the library call the function `configure` specifying the API Key, and the primary language.
+To configure the library to get the translation remotely, call the function `configure` specifying the API Key, and the primary language.
 
 ``` swift
 do {
-    try Translator.configure(TranslatorConfigurationModel(apiKey: "your API Key", primaryLanguage: "en-US"))
+    try Translator.configure(
+        TranslatorConfigurationModel(
+            primaryLanguage: "en-US",
+            apiKey: "your API key",
+        )
+    )
 } catch {
     // handle error
 }
 ```
 
-To automatically use device language for translation, during the configuration must be set as option `automaticallyUpdateLocale`, as shown in the following code:
+To configure the library to get the translation from a local file, call the function `configure` setting the `localOnly` option, the path of the local file and the primary language.
 
 ``` swift
 do {
-    try Translator.configure(TranslatorConfigurationModel(apiKey: "your API Key", primaryLanguage: "en-US", options: [.automaticallyUpdateLocale]))
+    try Translator.configure(
+        TranslatorConfigurationModel(
+            primaryLanguage: "en-US",
+            options: [.localOnly]
+            localFilePath: Bundle.main.url(forResource: "your local file name", withExtension: ".json"),
+        )
+    )
+} catch {
+    // handle error
+}
+```
+It is also possible to pass a path of a local file (without the `.localOnly` option) to be used as a backup in case the remote sync fails and the desired language hasn't been saved in the database.
+
+To automatically use device language for translation, during the configuration the option `automaticallyUpdateLocale` must be set, as shown in the following code:
+
+``` swift
+do {
+    try Translator.configure(
+        TranslatorConfigurationModel(
+            primaryLanguage: "en-US", 
+            options: [.automaticallyUpdateLocale],
+            apiKey: "your API Key"
+        )
+    )
 } catch {
     // handle error
 }
@@ -93,47 +132,58 @@ This object can now be injected or retrieved anywhere in the application.
 
 ### Sync
 
-To synchronize the local database with the remote one, the `sync` function must be used. Since the function is marked with `async`, it must be used in an asynchronous scope.
+To synchronize the local database with the remote one or with the local translations file, the `sync` function must be used. Since the function is marked with `async`, it must be used in an asynchronous scope.
 
 ``` swift
 try await translator.sync()
 ```
 
-The synchronization operation should be done at least once every time the app is started, possibly as first operation, to ensure that the strings are available before using them. Depending on the behavior of the app, the sync operation can also be done multiple time during the lifecycle of the app, without issues.
+The synchronization operation should be done at least once every time the app is started, possibly as first operation, to ensure that the strings are available before using them. Depending on the behavior of the app, the sync operation can also be done multiple times during the lifecycle of the app, without issues.
 
 ### Observing the state
 
-`Translator` emits two states, `translatorSyncState` and `translatorLanguageState`.
+`Translator` emits two states that are `translatorSyncState` and `translatorLanguageState`.
 
-The former describes the state of the synchronization of the local database with remote one and can assume three values:
+`translatorSyncState` describes the state of the synchronization of the local database with the remote one and can assume seven values:
+
 - `desynchronized`: when the `Translator` has not been synchronized or the previous synchronization failed;
 - `synchronized`: when the synchronization has been done successfully;
-- `synchronizing`: when the synchronization is in progress.
+- `synchronizing`: when the synchronization is in progress;
+- `remoteError`: there has been a remote error during the synchronization of the `Translator`;
+- `databaseError`: when there has been a database error during the synchronization of the `Translator`;
+- `localFileError`: when there has been an error with the local translations file used with the `localOnly` option;
+- `genericError`: when there has been a generic error during the synchronization of the `Translator`.
 
-The latter describes the synchronization state of the new language when this changes can assume three values:
+`translatorLanguageState` describes the synchronization state of the new language when this changes and can assume one of the following values:
+
 - `changingLanguage`: when the synchronization of the new language is in progress;
 - `defaultLanguage`: when the language has not been changed or the previous synchronization of the new language failed;
-- `languageChanged`: when the synchronization of the new language has been done successfully.
+- `languageChanged`: when the synchronization of the new language has been done successfully;
+- `remoteError`: there has been a remote error during the synchronization of the `Translator`;
+- `databaseError`: when there has been a database error during the synchronization of the `Translator`;
+- `localFileError`: when there has been an error with the local translations file used with the `localOnly` option;
+- `genericError`: when there has been a generic error during the synchronization of the `Translator`.
 
-This states could be used to ensure that the translation operation is done only when the value of one of the states is `synchronized` or `languageChanged`. To see the values of the states two approaches could be followed:
+These states could be used to ensure that the translation operation is done only when the value of one of the states is `synchronized` or `languageChanged`. To see the values of the states two approaches could be followed:
+
 - the states could be observed by making a `sink` on them;
 - the current value of the state could be retrieved by checking his `value` 
 
 ### Localization
 
-After the synchronization, the localization keys can be translated. To do it there are two functions, `translate` and `getTranslationFor` the difference between them is how the not-found error is handled.
+After the synchronization, localization keys can be translated. To do it there are two functions, `translate` and `getTranslationFor`; the difference between them is how the not-found error is handled.
 
 ``` swift
 let string1 = translator.translate("test.plain")
 let string2 = try translator.getTranslationFor("test.plain")
 ```
 
-In the first case, `translate` will return the same key if it is not available in the local database, instead `getTranslationFor` will throw a `DatabaseError`. The usage depends on the desired result, for example if the developer wants to translate a string inside a SwiftUI `Text` object they may prefer to use the function without any throw, to make the code more readable.
+In the first case, `translate` will return the same key if it is not available in the local database, and `getTranslationFor` will throw a `DatabaseError`. The usage depends on the desired result; for example, if the developer wants to translate a string inside a SwiftUI `Text` object they may prefer to use the function without any throw, to make the code more readable.
 
 #### Template Strings
 
-A translation can contain some placeholders that need to be substitute with some values. To achieve this, the translation method accepts an array of `String` that contains the substitutions to the placeholders. The order of the array will be used to order the substitutions.
-For example the translation for the following strings will be:
+A translation can contain some placeholders that need to be substitute with some values. To achieve this, the translation method accepts an array of `String` that contains the substitutions that will replace the placeholders. The order of the array will be the same in which the substitutions will appear in the localized string.
+For example, the translation for the following strings will be:
 ``` json
 "test.substring1": "Lorem {{1}} dolor sit amet, {{2}} adipiscing elit."
 "test.substring2": "Lorem {{2}} dolor sit amet, {{1}} adipiscing elit."
@@ -149,7 +199,7 @@ let string2 = translator.translate("test.substring2", ["ipsum", "consectetur"])
 
 ### Change language
 
-If the option `automaticallyUpdateLocale` was passed during the configuration, the library will change language based on the device's preference. If, instead, the developer wants to handle this manually, the function `setLanguage` will allow to set and synchronize a new language.
+If the option `automaticallyUpdateLocale` was passed during the configuration, the library will change language based on the device's preferences. If, instead, the developer wants to handle this manually, the function `setLanguage` will allow to set and synchronize a new language.
 
 ``` swift
 try await translator.setLanguage(languageCode: "en-US")
@@ -163,33 +213,50 @@ The same language must be set also in the TrAPP online platform.
 
 ### External file
 
-Since the Internet connection is not always guaranteed at the first launch of the app, it is possible to give to the library an external `JSON` file containing the translations that needs to be always available. 
+Since an Internet connection is not always guaranteed at the first launch of the app, it is possible to give to the library an external `JSON` file containing the translations that needs to be always available. If the library is configured with the `.localOnly` option, this will also be the file used to retrieve the translations without doing any remote call.
 The format of the `JSON` file needs to be the following:
-``` json
+```json
 {
-    "keys": {
-        "test.plain": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-        "test.substring": "Lorem {{1}} dolor sit amet, consectetur adipiscing elit.",
+    "baseLanguage": "<base language code>",
+    "languageFallback": {
+      "<language not translated code>": "<fallback language code>",
+      "<language not translated code>": "<fallback language code>"
+    },
+    "translations": {
+      "<language code>": {
+        "<key>": "<translation>",
+        "<key>": "<translation>",
+        "<key>": "<translation>"
+      },
+      "<language code>": {
+        "<key>": "<translation>",
+        "<key>": "<translation>",
+        "<key>": "<translation>"
+      }
     }
-}
-```
-To add this file to the library must be used the `setDefaultsStrings` function. This function saves the provided strings in the local database.
+  }
 
-``` swift
-try await translator.setDefaultsStrings(fileURL: localPath)
 ```
 
-In the example, the `localPath` is the `URL` to file. The format of the `URL` should be `file:///<path-to-file>/file.json`. 
-
-> **_NOTE:_** This method should be called only at the first launch of the app.
+To add this file to the library, its path must be passed in the `Translator.configure()` function.
+```swift
+try Translator.configure(
+    TranslatorConfigurationModel(
+        primaryLanguage: "en-US",
+        apiKey: "your API key",
+        localFilePath: Bundle.main.url(forResource: "name of the local file", withExtension: ".json")
+    )
+)
+```
 
 ### TranslatableText
 
 The translation of a string could also be done using `TranslatableText`, a wrapper of `SwiftUI.Text`. 
 
-This *View* waits, with a shimmered text, until one of the `Translator` states becomes `synchronized` or `languageChanged` and only when one of this states are reached performs the translation.
+This *View* waits, with a shimmered text, until one of the `Translator` states becomes `synchronized` or `languageChanged`; only when one of this states is reached it performs the translation.
 
 The view supports:
+
 - the translation of templated strings;
 - custom placeholder;
 - custom timeout:
