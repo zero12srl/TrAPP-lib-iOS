@@ -287,5 +287,5 @@ TranslatableText(key: "test.plain", content: { text in
 
 ## About
 
-Made with ❤️ by zero12. 
+Made with ❤️ by 7CIRCLE. 
 The names and logo are trademarks of zero12 srl.
