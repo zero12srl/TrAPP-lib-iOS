@@ -288,4 +288,4 @@ TranslatableText(key: "test.plain", content: { text in
 ## About
 
 Made with ❤️ by 7CIRCLE. 
-The names and logo are trademarks of zero12 srl.
+The names and logo are trademarks of 7CIRCLE.
